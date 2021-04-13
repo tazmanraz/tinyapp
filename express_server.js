@@ -7,8 +7,8 @@ const PORT = 8080; // default port 8080
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 
-function generateRandomString() {
-    let result = ' ';
+const generateRandomString = function() {
+    let result = '';
     const charactersLength = characters.length;
     for ( let i = 0; i < 6; i++ ) {
         result += characters.charAt(Math.floor(Math.random() * charactersLength));
@@ -23,17 +23,17 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-app.get("/", (req, res) => {
-  res.send("Hello!");
-});
+// app.get("/", (req, res) => {
+//   res.send("Hello!");
+// });
 
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
+// app.get("/urls.json", (req, res) => {
+//   res.json(urlDatabase);
+// });
 
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
+// app.get("/hello", (req, res) => {
+//   res.send("<html><body>Hello <b>World</b></body></html>\n");
+// });
 
 
 app.get("/urls", (req, res) => {
@@ -45,14 +45,31 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+// app.post("/urls", (req, res) => {
+//   console.log(req.body);  // Log the POST request body to the console
+//   res.send("Ok");         // Respond with 'Ok' (we will replace this)
+// });
+
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  let inputSite = req.body.longURL;
+  let shortString = generateRandomString();
+  urlDatabase[shortString] = inputSite;
+  console.log(urlDatabase)
+  res.redirect("/urls/"+shortString)
 });
 
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  let shortKey = req.params.shortURL;
+  const longURL = urlDatabase[shortKey];
+
+  //params: { shortURL: 'HU8NLh' },
+  //const longURL = urlDatabase[]
+  res.redirect(longURL);
 });
 
 app.listen(PORT, () => {
