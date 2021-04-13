@@ -34,10 +34,13 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+
+
 // Renders the new urls page where users can make a new URL
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
+
 
 // Generates a random short URL and goes to a confirmation page on the redirect
 app.post("/urls", (req, res) => {
@@ -48,13 +51,13 @@ app.post("/urls", (req, res) => {
   res.redirect("/urls/"+shortString)
 });
 
-// Confirmation page that shoes short and long URL
+// Confirmation page that shows short and long URL
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);
 });
 
-//goes to the long url page if we put in our shortUrl under /u/:shortURL
+// Goes to the long url page if we put in our shortUrl under /u/:shortURL
 app.get("/u/:shortURL", (req, res) => {
   let shortKey = req.params.shortURL;
   const longURL = urlDatabase[shortKey];
@@ -65,6 +68,13 @@ app.get("/u/:shortURL", (req, res) => {
 app.post('/urls/:shortURL/delete', (req, res) => {
   delete urlDatabase[req.params.shortURL];
   res.redirect("/urls/");
+});
+
+
+// Updates the url from our database
+app.post('/urls/:shortURL', (req, res) => {
+  urlDatabase[req.params.shortURL] = req.body.newLink
+  res.redirect('/urls/')
 });
 
 // Connecting to server
