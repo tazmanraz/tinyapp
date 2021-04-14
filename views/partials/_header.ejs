@@ -13,13 +13,9 @@
           <form class="form-inline" action="/logout" method="POST">
             <p>Hello <%= user %></p>
             <input type="submit" class="btn btn-outline-dark" value="Logout" />
-        <% } else{ %>  
-          <form class="form-inline" action="/login" method="POST">
-            <input class="form-control" type="text" name="user" placeholder="User" style="width: 150px; margin: 0.1em">
-            <input type="submit" class="btn btn-outline-dark" value="Login" />
-          </form>
-       <% } %>
-
+        <% }  %>
+       <a class="nav-item nav-link mr" href="/login">Login</a>
+       <a class="nav-item nav-link" href="/register">Register</a>
 
 
       </div>

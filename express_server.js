@@ -19,19 +19,56 @@ const generateRandomString = function() {
     return result;
 }
 
+// function to check if email exists
+const checkEmail = function(input) {
+  for (const id in userDatabase) {
+    if (userDatabase[id]['email'] === input) {
+      return id; // this is a truthy statement - change if giving issues
+    } 
+  }
+  return false;
+}
 
+// function to create a new user
 const createNewUser = (id, email, password) => {
-  if (userDatabase[id]) {
-    return { error: "User already exists", data: null }
+  if (!email || !password) {
+    return { status: 400, error: "There is an empty field", data: null }
   }
 
-  if (!email || !password) {
-    return { error: "There is an empty field", data: null }
+  if (checkEmail(email)) {
+    return { status: 400, error: "User already exists", data: null } 
   }
 
   userDatabase[id] = { id, email, password }
-  return { error: null, data: { id, email, password } }
+  return { status: null, error: null, data: { id, email, password } }
 }
+
+// Checks login credentials
+const checkLogin = (email, password) => {
+  let id = checkEmail(email);
+  if (!id) {
+    return { status: 403, error: "Error logging in (no email)", data: null }
+  }
+  if (id) {
+    if (userDatabase[id]['password'] !== password) {
+      return { status: 403, error: "Error logging in (password)", data: null }
+    }
+  }
+  return { status: null, error: null, data: { email, password } }
+}
+
+// 
+const isUserLoggedIn = (input) => {
+  let result = "";
+  if ('undefined' !== typeof input) {
+    result = userDatabase[input]['email'];
+  }
+  return result;
+}
+
+/////////////////////////////////////
+////////// -----  DATABASES -----
+/////////////////////////////////////
 
 // Local object database for short and corresponding long urls
 const urlDatabase = {
@@ -44,7 +81,7 @@ const userDatabase = {
   "userRandomID": {
     id: "userRandomID", 
     email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
+    password: "asdf"
   },
  "user2RandomID": {
     id: "user2RandomID", 
@@ -64,10 +101,22 @@ const userDatabase = {
 
 // logs in, sets cookie, and redirects to /urls
 app.post('/login', (req, res) => {
-  let username = req.body['username'];
-  res.cookie('user_id', userDatabase[req.cookies['user_id']]['email'])
+  const { email, password } = req.body;
+
+  const result = checkLogin(email, password)
+
+  if (result.error) {
+    return res.status(result.status).send(result.error)
+  }
+
+  //let user_id = checkLogin(result.data['email'])
+  let emailOfId = result.data['email'];
+  let user_id = checkEmail(emailOfId);
+  
+  res.cookie("user_id", user_id);
   res.redirect("/urls/");
-});
+  
+})
 
 // logs out, clears cookie, and redirects to /urls
 app.post('/logout', (req, res) => {
@@ -83,7 +132,7 @@ app.post('/register', (req, res) => {
   const result = createNewUser(user_id, email, password)
 
   if (result.error) {
-    return res.send(result.error)
+    return res.status(result.status).send(result.error)
   }
 
   res.cookie("user_id", user_id)
@@ -120,19 +169,26 @@ app.post('/urls/:shortURL', (req, res) => {
 
 // Renders a list of the urls
 app.get("/urls", (req, res) => {
-  console.log(userDatabase[req.cookies['user_id']]['email'])
-  const templateVars = { urls: urlDatabase, user: userDatabase[req.cookies['user_id']]['email'] };
+  //console.log(userDatabase[req.cookies['user_id']]['email'])
+  // let userVal = "";
+  // if ('undefined' !== typeof req.cookies['user_id']) {
+  //   userVal = userDatabase[req.cookies['user_id']]['email'];
+  // }
+  let userVal = isUserLoggedIn(req.cookies['user_id']);
+  const templateVars = { urls: urlDatabase, user: userVal };
   res.render("urls_index", templateVars);
 });
 
 // Renders the new urls page where users can make a new URL
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new", { user: userDatabase[req.cookies['user_id']]['email'] });
+  let userVal = isUserLoggedIn(req.cookies['user_id']);
+  res.render("urls_new", { user: userVal });
 });
 
 // Confirmation page that shows short and long URL
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: userDatabase[req.cookies['user_id']]['email'] };
+  let userVal = isUserLoggedIn(req.cookies['user_id']);
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: userVal };
   res.render("urls_show", templateVars);
 });
 
@@ -143,16 +199,22 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
-// Confirmation page that shows short and long URL
+// Registration page
 app.get("/register", (req, res) => {
   const templateVars = { };
   res.render("register", templateVars);
 });
 
+// Login page
+app.get("/login", (req, res) => {
+  const templateVars = { };
+  res.render("login", templateVars);
+});
 
 
-//--------------------------
+//////////////////////////
 // Connecting to server
+//////////////////////////
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
