@@ -4,7 +4,8 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const cookieParser = require('cookie-parser');
-//const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
+const saltRounds = 10;
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
@@ -56,7 +57,7 @@ const checkLogin = (email, password) => {
     return { status: 403, error: "Error logging in (no email)", data: null }
   }
   if (id) {
-    if (userDatabase[id]['password'] !== password) {
+    if (!bcrypt.compareSync(password, userDatabase[id]['password'])) {
       return { status: 403, error: "Error logging in (password)", data: null }
     }
   }
@@ -109,6 +110,7 @@ const userDatabase = {
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
 
+
   const result = checkLogin(email, password)
 
   if (result.error) {
@@ -132,12 +134,19 @@ app.post('/logout', (req, res) => {
 app.post('/register', (req, res) => {
   const { email, password } = req.body;
   let user_id = generateRandomString();
-  
-  const result = createNewUser(user_id, email, password)
+  const hashedPassword = bcrypt.hashSync(password, saltRounds);
+
+  const result = createNewUser(
+    user_id, 
+    email, 
+    hashedPassword
+    )
 
   if (result.error) {
     return res.status(result.status).send(result.error)
   }
+
+  //console.log(userDatabase)
 
   res.cookie("user_id", user_id)
   res.redirect("/urls/");
@@ -185,6 +194,7 @@ app.post('/urls/:shortURL', (req, res) => {
 
 // Renders a list of the urls
 app.get("/urls", (req, res) => {
+  console.log(userDatabase)
   let formattedDatabase = urlsForUser(req.cookies['user_id'])
 
   if (req.cookies['user_id']){
