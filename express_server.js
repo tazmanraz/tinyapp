@@ -3,12 +3,19 @@ const bodyParser = require("body-parser");
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
-const cookieParser = require('cookie-parser');
+//const cookieParser = require('cookie-parser');
 const bcrypt = require('bcryptjs');
 const saltRounds = 10;
+const cookieSession = require('cookie-session');
+
 
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser());
+//app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key2'],
+}));
+
 app.set("view engine", "ejs");
 
 ////////////////////////
@@ -120,13 +127,16 @@ app.post('/login', (req, res) => {
   let emailOfId = result.data['email'];
   let user_id = checkEmail(emailOfId);
   
-  res.cookie("user_id", user_id);
+  //res.cookie("user_id", user_id);
+  req.session['user_id'] = user_id;
   res.redirect("/urls/");
 })
 
 // Logs out, clears cookie, and redirects to /urls
 app.post('/logout', (req, res) => {
-  res.clearCookie('user_id');
+  //res.clearCookie('user_id');
+  
+  req.session = null;
   res.redirect('/urls/');
 });
 
@@ -148,7 +158,10 @@ app.post('/register', (req, res) => {
 
   //console.log(userDatabase)
 
-  res.cookie("user_id", user_id)
+  //res.cookie("user_id", user_id);
+  console.log("this is my result ")
+  console.log(result['data']['id'])
+  req.session['user_id'] = result['data']['id'];
   res.redirect("/urls/");
 });
 
@@ -158,8 +171,8 @@ app.post("/urls", (req, res) => {
   let inputSite = req.body.longURL;
   let shortString = generateRandomString();
 
-  if (req.cookies['user_id']) {
-    urlDatabase[shortString] = { longURL: inputSite, userID: req.cookies['user_id'] }
+  if (req.session['user_id']) {
+    urlDatabase[shortString] = { longURL: inputSite, userID: req.session['user_id'] }
     res.redirect("/urls/" + shortString);
   } else {
     res.redirect('/login')
@@ -168,7 +181,7 @@ app.post("/urls", (req, res) => {
 
 // Deletes the url from our database
 app.post('/urls/:shortURL/delete', (req, res) => {
-  if (urlDatabase[req.params.shortURL]['userID'] === req.cookies['user_id']) {
+  if (urlDatabase[req.params.shortURL]['userID'] === req.session['user_id']) {
     delete urlDatabase[req.params.shortURL]; // SHOULD BE SAME
     res.redirect("/urls/");
   } else {
@@ -179,8 +192,8 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 
 // Updates the url from our database
 app.post('/urls/:shortURL', (req, res) => {
-  if (req.cookies['user_id']) {
-    urlDatabase[req.params.shortURL] = { longURL: req.body.newLink, userID: req.cookies['user_id'] }
+  if (req.session['user_id']) {
+    urlDatabase[req.params.shortURL] = { longURL: req.body.newLink, userID: req.session['user_id'] }
     res.redirect('/urls/')
   } else {
     res.redirect('/urls')
@@ -194,11 +207,11 @@ app.post('/urls/:shortURL', (req, res) => {
 
 // Renders a list of the urls
 app.get("/urls", (req, res) => {
-  console.log(userDatabase)
-  let formattedDatabase = urlsForUser(req.cookies['user_id'])
+  //console.log(userDatabase)
+  let formattedDatabase = urlsForUser(req.session['user_id'])
 
-  if (req.cookies['user_id']){
-    const templateVars = { urls: formattedDatabase, user: req.cookies['user_id']  };
+  if (req.session['user_id']){
+    const templateVars = { urls: formattedDatabase, user: req.session['user_id']  };
     res.render("urls_index", templateVars);
   } else {
     res.render('urls_index', {urls: "", user: ""})
@@ -207,8 +220,8 @@ app.get("/urls", (req, res) => {
 
 // Renders the new urls page where users can make a new URL
 app.get("/urls/new", (req, res) => {
-  if (req.cookies['user_id']){
-    res.render("urls_new", { user: req.cookies['user_id'] });
+  if (req.session['user_id']){
+    res.render("urls_new", { user: req.session['user_id'] });
   } else {
     res.redirect('/urls')
   }
@@ -216,9 +229,9 @@ app.get("/urls/new", (req, res) => {
 
 // Confirmation page that shows short and long URL
 app.get("/urls/:shortURL", (req, res) => {
-  if (urlDatabase[req.params.shortURL]['userID'] === req.cookies['user_id']) {
-    let formattedDatabase = urlsForUser(req.cookies['user_id']);
-    const templateVars = { shortURL: req.params.shortURL, longURL: formattedDatabase[req.params.shortURL], user: req.cookies['user_id'] };
+  if (urlDatabase[req.params.shortURL]['userID'] === req.session['user_id']) {
+    let formattedDatabase = urlsForUser(req.session['user_id']);
+    const templateVars = { shortURL: req.params.shortURL, longURL: formattedDatabase[req.params.shortURL], user: req.session['user_id'] };
     res.render("urls_show", templateVars);
   } else {
     res.redirect('/urls')
