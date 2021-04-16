@@ -210,7 +210,7 @@ app.get("/urls", (req, res) => {
 // Renders the new urls page where users can make a new URL
 app.get("/urls/new", (req, res) => {
   if (req.session['user_id']){
-    res.render("urls_new", { user: req.session['user_id'] });
+    res.render("urls_new", { user: userDatabase[req.session['user_id']]['email'] });
   } else {
     res.redirect('/login');
   }
