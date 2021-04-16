@@ -1,3 +1,4 @@
+const {getUserByEmail} = require('./helpers')
 const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 const bodyParser = require("body-parser");
 const express = require("express");
@@ -33,23 +34,13 @@ const generateRandomString = function() {
     return result;
 }
 
-// function to check if email exists
-const checkEmail = function(input) {
-  for (const id in userDatabase) {
-    if (userDatabase[id]['email'] === input) {
-      return id; // this is a truthy statement - change if giving issues
-    } 
-  }
-  return null;
-}
-
 // function to create a new user
 const createNewUser = (id, email, password) => {
   if (!email || !password) {
     return { status: 400, error: "There is an empty field", data: null }
   }
 
-  if (checkEmail(email)) {
+  if (getUserByEmail(email, userDatabase)) {
     return { status: 400, error: "User already exists", data: null } 
   }
 
@@ -59,7 +50,7 @@ const createNewUser = (id, email, password) => {
 
 // Checks login credentials
 const checkLogin = (email, password) => {
-  let id = checkEmail(email);
+  let id = getUserByEmail(email, userDatabase);
   if (!id) {
     return { status: 403, error: "Error logging in (no email)", data: null }
   }
@@ -91,20 +82,20 @@ const urlsForUser = (id) => {
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
   i3BoGr: { longURL: "https://www.google.ca", userID: "vffUkR" },
-  cxYzPo: { longURL: "https://www.youtube.com", userID: "aJ48lW" },
+  cxYzPo: { longURL: "https://www.youtube.com", userID: "userRandomID" },
 };
 
 //stores users
 const userDatabase = { 
-  "aJ48lW": {
-    id: "aJ48lW", 
+  "userRandomID": {
+    id: "userRandomID", 
     email: "user@example.com", 
-    password: "asdf"
+    password: bcrypt.hashSync("purple-monkey-dinosaur", saltRounds)
   },
  "user2RandomID": {
     id: "user2RandomID", 
     email: "user2@example.com", 
-    password: "dishwasher-funk"
+    password: bcrypt.hashSync("dishwasher-funk", saltRounds)
   }
 }
 
@@ -125,7 +116,7 @@ app.post('/login', (req, res) => {
   }
 
   let emailOfId = result.data['email'];
-  let user_id = checkEmail(emailOfId);
+  let user_id = getUserByEmail(email, userDatabase);
   
   //res.cookie("user_id", user_id);
   req.session['user_id'] = user_id;
