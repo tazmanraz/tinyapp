@@ -1,3 +1,7 @@
+// MORE HELPER FUNTIONS TO BE MOVED HERE AFTER RESUBMISSION
+// CURRENTLY FIGURING OUT REFERENCE ERRORS WHEN MOVING THEM
+
+// Gets user by email
 const getUserByEmail = function(email, database) {
   for (const user in database) {
     if (database[user]['email'] === email) {
