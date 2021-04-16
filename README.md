@@ -4,8 +4,8 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Final Product
 
-!["Screenshot of URLs page"](https://github.com/lighthouse-labs/tinyapp/blob/master/docs/urls-page.png)
-!["Screenshot of create page"](https://github.com/lighthouse-labs/tinyapp/blob/master/docs/create.png)
+!["Screenshot of URLs page"](https://github.com/tazmanraz/tinyapp/blob/master/docs/urls-page.PNG)
+!["Screenshot of create page"](https://github.com/tazmanraz/tinyapp/blob/master/docs/create.PNG)
 
 ## Dependencies
 
@@ -20,7 +20,7 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 - Install all dependencies (using the `npm install` command).
 - Run the development web server using the `node express_server.js` command.
-- NOTE: This was developed in a windows environment. If using nodemon on a unix based system, the "start" script has to change to the following directory: 
+- NOTE: This was developed in a windows environment. If using nodemon on a unix based system, the "start" script has to change in package.JSON: 
 
 >"scripts": {
 >  "start": "./node_modules/.bin/nodemon -L express_server.js",
