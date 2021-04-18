@@ -29,11 +29,9 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Bug Fixes and Features to Work on
 
-- Move all helper functions to helper.js. Currently having referencing issues and will have to use closures to fix this.
-- Some conditionals could be optimized. Particularly checkLogin.
 - Create a separate file for databases for best practises.
 - Make pages look nicer. Currently the formatting is off on some pages. With more time, this will be improved.
 - Set a time limit for cookie expiration for logged in users.
 - Login and Registration page need more formatting and links to other pages
 - Header could be applied on every page
-- Bug with if network is restarted and cookies not cleared. Must add condition if network starts again and cookies don't match any users in database, then to clear them autmatically.
+- Bug if network is restarted and cookies not cleared. Must add condition if network starts again and cookies don't match any users in database, then to clear them autmatically. However, databases are normally stored separately along with some key corresponding information so this bug may not be be that common for practical uses.

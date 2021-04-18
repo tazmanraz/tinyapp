@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////
 // CONSTANTS, LIBRARIES, MODULES AND MIDDLEWARE ///
 ///////////////////////////////////////////////////
-const { getUserByEmail, generateRandomString } = require('./helpers');
+const { getUserByEmail, generateRandomString, createNewUser, checkLogin, urlsForUser } = require('./helpers');
 
 const PORT = 8080;
 const saltRounds = 10;
@@ -20,61 +20,11 @@ app.use(cookieSession({
 
 app.set("view engine", "ejs");
 
-//////////////////////////
-///  HELPER FUNCTIONS  ///
-//////////////////////////
-
-
-// All helper functions to be moved to helper.js file for best practises on resubmission
-// Currently having reference error issues when I try move all of these
-// which I am figuring out. Closures may need to be used for proper referencing
-
-
-// function to create a new user
-const createNewUser = (id, email, password) => {
-  if (!email || !password) {
-    return { status: 400, error: "There is an empty field", data: null }
-  }
-  if (getUserByEmail(email, userDatabase)) {
-    return { status: 400, error: "User already exists", data: null } 
-  }
-
-  userDatabase[id] = { id, email, password }
-  return { status: null, error: null, data: { id, email, password } }
-}
-
-// Checks login credentials
-const checkLogin = (email, password) => {
-  let id = getUserByEmail(email, userDatabase);
-  if (!id) {
-    return { status: 403, error: "Error logging in", data: null }
-  }
-  if (id) {
-    if (!bcrypt.compareSync(password, userDatabase[id]['password'])) {
-      return { status: 403, error: "Error logging in", data: null }
-    }
-  }
-  return { status: null, error: null, data: { email, password } }
-}
-
-// Function for filtering urls based on user_id
-const urlsForUser = (id) => {
-  let userUrlDatabase = {}
-  for (const key in urlDatabase) {
-    if (id === urlDatabase[key]['userID']){
-      userUrlDatabase[key] = urlDatabase[key]['longURL'];
-    }
-  }
-  return userUrlDatabase;
-}
-
-
 /////////////////////////////////////
 //////////      DATABASES        ////
 /////////////////////////////////////
 
 // Database to be moved on separate file on resubmission for best practises
-
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
   i3BoGr: { longURL: "https://www.google.ca", userID: "vffUkR" },
@@ -102,7 +52,7 @@ const userDatabase = {
 // Logs in, sets cookie, and redirects to /urls
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
-  const result = checkLogin(email, password);
+  const result = checkLogin(email, password, userDatabase);
 
   if (result.error) {
     return res.status(result.status).send(result.error);
@@ -126,7 +76,7 @@ app.post('/register', (req, res) => {
   let user_id = generateRandomString();
   const hashedPassword = bcrypt.hashSync(password, saltRounds);
 
-  const result = createNewUser(user_id, email, hashedPassword)
+  const result = createNewUser(user_id, email, hashedPassword, userDatabase)
 
   if (result.error) {
     return res.status(result.status).send(result.error);
@@ -184,7 +134,7 @@ app.get("/", (req, res) => {
 
 // Renders a list of the urls
 app.get("/urls", (req, res) => {
-  let formattedDatabase = urlsForUser(req.session['user_id']);
+  let formattedDatabase = urlsForUser(req.session['user_id'], urlDatabase);
 
   if (req.session['user_id']){
     const templateVars = { 
@@ -213,7 +163,7 @@ app.get("/urls/:shortURL", (req, res) => {
   }
   
   if (urlDatabase[req.params.shortURL]['userID'] === req.session['user_id']) {
-    let formattedDatabase = urlsForUser(req.session['user_id']);
+    let formattedDatabase = urlsForUser(req.session['user_id'], urlDatabase);
     const templateVars = { 
       shortURL: req.params.shortURL, 
       longURL: formattedDatabase[req.params.shortURL],  
