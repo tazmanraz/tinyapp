@@ -60,6 +60,7 @@ app.post('/login', (req, res) => {
 
   let user_id = getUserByEmail(email, userDatabase);
   
+  //sets user_id as the cookie
   req.session['user_id'] = user_id;
   res.redirect("/urls/");
 })
@@ -70,7 +71,7 @@ app.post('/logout', (req, res) => {
   res.redirect('/urls/');
 });
 
-// Registering backend process
+// Registering a new user
 app.post('/register', (req, res) => {
   const { email, password } = req.body;
   let user_id = generateRandomString();
@@ -81,6 +82,8 @@ app.post('/register', (req, res) => {
   if (result.error) {
     return res.status(result.status).send(result.error);
   }
+
+  //Sets the cookie to the new registered user which is now logged in
   req.session['user_id'] = result['data']['id'];
   res.redirect("/urls/");
 });
@@ -91,6 +94,7 @@ app.post("/urls", (req, res) => {
   let inputSite = req.body.longURL;
   let shortString = generateRandomString();
 
+  // Redirects to "update page" if logged in user has permission
   if (req.session['user_id']) {
     urlDatabase[shortString] = { longURL: inputSite, userID: req.session['user_id'] }
     res.redirect("/urls/" + shortString);
@@ -158,6 +162,8 @@ app.get("/urls/new", (req, res) => {
 
 // Confirmation page that shows short and long URL
 app.get("/urls/:shortURL", (req, res) => {
+
+  //If user goes to a page that does not exist
   if (!urlDatabase[req.params.shortURL]) {
     return res.status(404).send('404 Error. This page does not exist');
   }
@@ -201,7 +207,6 @@ app.get("/login", (req, res) => {
   }
   res.render("login", {});
 });
-
 
 //////////////////////////
 // Connecting to server //
