@@ -147,7 +147,7 @@ app.get("/urls", (req, res) => {
     };
     res.render("urls_index", templateVars);
   } else {
-    return res.status(401).send('401 Error. You are not supposed to be here. Go to /register or /login');
+    return res.status(401).send('401 Error. You are not supposed to be here. Go to <a href="/register">register</a> or <a href="/login">login</a> to create new tiny URLS');
   }
 });
 
