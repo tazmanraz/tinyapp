@@ -1,9 +1,8 @@
 ///////////////////////////////////////////////////
 // CONSTANTS, LIBRARIES, MODULES AND MIDDLEWARE ///
 ///////////////////////////////////////////////////
-const { getUserByEmail } = require('./helpers');
+const { getUserByEmail, generateRandomString } = require('./helpers');
 
-const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 const PORT = 8080;
 const saltRounds = 10;
 
@@ -30,15 +29,6 @@ app.set("view engine", "ejs");
 // Currently having reference error issues when I try move all of these
 // which I am figuring out. Closures may need to be used for proper referencing
 
-// Generates random 6 character string
-const generateRandomString = function() {
-  let result = '';
-  const charactersLength = characters.length;
-  for ( let i = 0; i < 6; i++ ) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-  }
-  return result;
-}
 
 // function to create a new user
 const createNewUser = (id, email, password) => {
@@ -57,11 +47,11 @@ const createNewUser = (id, email, password) => {
 const checkLogin = (email, password) => {
   let id = getUserByEmail(email, userDatabase);
   if (!id) {
-    return { status: 403, error: "Error logging in (no email)", data: null }
+    return { status: 403, error: "Error logging in", data: null }
   }
   if (id) {
     if (!bcrypt.compareSync(password, userDatabase[id]['password'])) {
-      return { status: 403, error: "Error logging in (password)", data: null }
+      return { status: 403, error: "Error logging in", data: null }
     }
   }
   return { status: null, error: null, data: { email, password } }

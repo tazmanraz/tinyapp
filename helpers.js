@@ -1,5 +1,16 @@
 // MORE HELPER FUNTIONS TO BE MOVED HERE AFTER RESUBMISSION
 // CURRENTLY FIGURING OUT REFERENCE ERRORS WHEN MOVING THEM
+const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+// Generates random 6 character string
+const generateRandomString = function() {
+  let result = '';
+  const charactersLength = characters.length;
+  for ( let i = 0; i < 6; i++ ) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
 
 // Gets user by email
 const getUserByEmail = function(email, database) {
@@ -11,6 +22,10 @@ const getUserByEmail = function(email, database) {
   return null;
 }
 
+
+
+
 module.exports = {
-  getUserByEmail
+  getUserByEmail,
+  generateRandomString
 }
