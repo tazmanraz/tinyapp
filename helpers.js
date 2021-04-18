@@ -1,10 +1,8 @@
-// MORE HELPER FUNTIONS TO BE MOVED HERE AFTER RESUBMISSION
-// CURRENTLY FIGURING OUT REFERENCE ERRORS WHEN MOVING THEM
 const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 const bcrypt = require('bcryptjs');
 
 // Generates random 6 character string
-const generateRandomString = function() {
+const generateRandomString = () => {
   let result = '';
   for (let i = 0; i < 6; i++) {
     result += characters.charAt(Math.floor(Math.random() * characters.length));
@@ -13,7 +11,7 @@ const generateRandomString = function() {
 }
 
 // Gets user by email
-const getUserByEmail = function(email, database) {
+const getUserByEmail = (email, database) => {
   for (const user in database) {
     if (database[user]['email'] === email) {
       return user; // this is a truthy statement - change if giving issues
